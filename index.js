@@ -1,6 +1,6 @@
-const server_addr = '10.28.156.99'
+const server_addr = '172.31.205.234'
 // const server_addr = '10.147.17.162'
-const server_port = '8080'
+const server_port = '6789'
 var   server_url = 'http://' + server_addr + ':' + server_port
 var   ter = 100
 var cd = {
@@ -132,9 +132,7 @@ get_chat = ()=>{
     if (cd['chat'] < 500) return
     cd['chat'] = 0
     send({'cmd' : 'ask_chat', 'from' : chat_id}, res=>{
-        console.log('ggg', res.n)
         if(res.n>0){
-            console.log('fff')
             for (i in res.data) {
                 let cont = res.data[i][0] + ': ' + res.data[i][1]  
                 cont = '<div class="chat_box">' + cont + '</div>'              

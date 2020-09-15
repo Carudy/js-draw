@@ -1,4 +1,4 @@
-from base_server import Base_handler, Game_server
+from base_server import Base_handler, Server_thread
 from collections import defaultdict as dd
 import time
 
@@ -34,10 +34,12 @@ class GBV():
         return {'uid' : self.now}
 
     def add_say(self, uid, cont):
+        # print('Add speak', self.players[uid].name, cont)
         self.chat.append((self.players[uid].name, cont))
         return {'res' : 0}
 
     def ask_say(self, x):
+        # print('Ask speak from, all', x, len(self.chat))
         self.clean()
         if x>=len(self.chat): return {'n' : 0}
         return {'n' : len(self.chat)-x, 'data' : self.chat[x:]}
@@ -47,7 +49,7 @@ class GBV():
         return {'res' : 0}
 
     def ask_lines(self, x):
-        print(len(self.lines), x)
+        # print('Lines, all, from', len(self.lines), x)
         return {'lines' : self.lines[x:]}
 
 
@@ -77,5 +79,13 @@ class S(Base_handler):
 
 
 if __name__ == '__main__':
+    global G
     G = GBV()
-    Game_server(S, 8080)
+    # Game_server(S, 6789)
+    td = Server_thread(S, 6789)
+    td.start()
+
+    while True:
+        x = input('CMD: ')
+        if x=='u':
+            print(G.now)
