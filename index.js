@@ -92,7 +92,7 @@ $(() => {
 
     $('#redraw').click(()=>{
         send({
-            'cmd' : 'redraw',21
+            'cmd' : 'redraw',
             'uid' : player_id,
         }, res=>{})
     })
@@ -132,7 +132,9 @@ get_chat = ()=>{
     if (cd['chat'] < 500) return
     cd['chat'] = 0
     send({'cmd' : 'ask_chat', 'from' : chat_id}, res=>{
+        console.log('ggg', res.n)
         if(res.n>0){
+            console.log('fff')
             for (i in res.data) {
                 let cont = res.data[i][0] + ': ' + res.data[i][1]  
                 cont = '<div class="chat_box">' + cont + '</div>'              
