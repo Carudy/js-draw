@@ -1,4 +1,4 @@
-# H5 Game: U draw I guess.
+# H5 Game: 你画我猜 局域网版
 - LAN play enabled
 - WAN with zerotier
 
