@@ -1,4 +1,4 @@
-const server_addr = '172.31.205.234'
+const server_addr = '10.147.19.5'
 // const server_addr = '10.147.17.162'
 const server_port = '6789'
 var   server_url = 'http://' + server_addr + ':' + server_port
@@ -7,6 +7,7 @@ var cd = {
         'beat' : 0,
         'chat' : 0,
         'ask_line' : 0,
+        'info' : 0,
     }
 var beat_fail = 0
 var player_id = 0, player_type = 0
@@ -14,9 +15,9 @@ var chat_id = 0
 
 var c = document.getElementById("canva")
 var cxt = c.getContext("2d")
-cxt.fillStyle = "#efefee"
+cxt.fillStyle = "#efefde"
 
-var lines = [], drawing = false, draw_cnt = 0, up_line = 0
+var lines = [], drawing = false, draw_cnt = 0, up_line = 0, draw_id = 0
 
 $(() => { 
     $('#nick').val('You')
@@ -91,6 +92,7 @@ $(() => {
     })
 
     $('#redraw').click(()=>{
+        if (player_type!=1) return
         send({
             'cmd' : 'redraw',
             'uid' : player_id,
@@ -119,8 +121,14 @@ heart_beat = ()=>{
         beat_fail += 1
         cd['beat'] = 0
         send({'cmd' : 'beat', 'uid' : player_id}, res=>{
-            $('#info0').text('成功连接')
-            beat_fail = 0
+            if(res.res=='ok'){
+                $('#info0').text('成功连接')
+                beat_fail = 0
+            }else{
+                $('#info0').text('连接失败')
+                player_id = 0
+                player_type = 0
+            }
         })
     }
     if(beat_fail>1){
@@ -128,7 +136,7 @@ heart_beat = ()=>{
     }
 }
 
-get_chat = ()=>{
+ask_chat = ()=>{
     if (cd['chat'] < 500) return
     cd['chat'] = 0
     send({'cmd' : 'ask_chat', 'from' : chat_id}, res=>{
@@ -162,6 +170,24 @@ ask_line = () => {
     })
 }
 
+ask_info = () =>{
+    if (cd['info'] < 1000) return
+    cd['info'] = 0
+    send({'cmd' : 'info', 'uid' : player_id}, res=>{
+        if (draw_id!=res.draw_id){
+            console.log('R')
+            lines = []
+            up_line = 0
+            draw_cnt = 0
+            draw_id = res.draw_id
+            // cxt.clearRect(0, 0, 10000, 10000)
+            c.width = c.width
+        }
+
+        $('#online-user').text(res.users.join(', '))
+    })
+}
+
 god = ()=>{
     for(i in cd){ cd[i] += ter }
 
@@ -171,7 +197,8 @@ god = ()=>{
     if(player_id==0){return}
     
     // work
-    get_chat()
+    ask_chat()
+    ask_info()
     if (player_type==0) ask_line()
 
 }
