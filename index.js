@@ -1,4 +1,5 @@
-const server_addr = '10.147.19.5'
+const server_addr = '10.28.156.99'
+// const server_addr = '10.147.19.5'
 // const server_addr = '10.147.17.162'
 const server_port = '6789'
 var   server_url = 'http://' + server_addr + ':' + server_port
@@ -10,7 +11,7 @@ var cd = {
         'info' : 0,
     }
 var beat_fail = 0
-var player_id = 0, player_type = 0
+var player_id = 0, player_type = 0, play_id = 0, playing = 0
 var chat_id = 0
 
 var c = document.getElementById("canva")
@@ -23,7 +24,7 @@ $(() => {
     $('#nick').val('You')
     $('#addr').val(server_addr)
     $('#port').val(server_port)
-    $('#type').val(0)
+    // $('#type').val(0)
 
     $('#canva').mousedown(e=>{
         if(player_type!=1)return
@@ -57,7 +58,7 @@ $(() => {
     })
 
     $('#link').click(()=>{
-        player_type = $('#type').val()
+        // player_type = $('#type').val()
         server_url = 'http://' + $('#addr').val() + ':' + $('#port').val()
         send({
                 'cmd' : 'reg',
@@ -71,7 +72,7 @@ $(() => {
 
     $('#speak').click(()=>{
         if($('#speech').val().length==0){
-            $('#info1').text('消息不能为空！')
+            $('#info2').text('消息不能为空！')
             return
         }
 
@@ -88,7 +89,11 @@ $(() => {
         send({
             'cmd' : 'ready',
             'uid' : player_id,
-        }, res=>{})
+        }, res=>{
+            if(res.res==0){
+                $('#info1').text('准备就绪')
+            }
+        })
     })
 
     $('#redraw').click(()=>{
@@ -97,6 +102,21 @@ $(() => {
             'cmd' : 'redraw',
             'uid' : player_id,
         }, res=>{})
+    })
+
+    $('#guess').click(()=>{
+        if (playing==0 || player_type!=0) return
+        send({
+            'cmd' : 'guess',
+            'uid' : player_id,
+            'tar' : $('#tar').val()
+        }, res=>{
+            if (res.res==0){
+                $('#info0').text('猜对了！')
+            } else{
+                $('#info0').text('猜错了！')
+            }
+        })
     })
 
     // hot keys
@@ -122,7 +142,7 @@ heart_beat = ()=>{
         cd['beat'] = 0
         send({'cmd' : 'beat', 'uid' : player_id}, res=>{
             if(res.res=='ok'){
-                $('#info0').text('成功连接')
+                // $('#info0').text('成功连接')
                 beat_fail = 0
             }else{
                 $('#info0').text('连接失败')
@@ -171,11 +191,18 @@ ask_line = () => {
 }
 
 ask_info = () =>{
-    if (cd['info'] < 1000) return
+    if (cd['info'] < 500) return
     cd['info'] = 0
     send({'cmd' : 'info', 'uid' : player_id}, res=>{
+        playing = res.playing
+        if (playing){
+            $('#info2').text('游戏已开始')
+        } else{
+            $('#info2').text('游戏未开始')
+        }
+
+        // redraw
         if (draw_id!=res.draw_id){
-            console.log('R')
             lines = []
             up_line = 0
             draw_cnt = 0
@@ -184,7 +211,27 @@ ask_info = () =>{
             c.width = c.width
         }
 
-        $('#online-user').text(res.users.join(', '))
+        // user info
+        $('#online-user').text(res.users)
+        $('#credit').text(res.coin)
+
+        // new game
+        if (res.play_id != play_id){
+            play_id = res.play_id
+            if (player_id == res.painter) {
+                player_type = 1
+                $('#info0').text('你是画家')
+                $('#info1').text('题目: ' + res.answer)
+            }else{
+                player_type = 0
+                $('#info0').text('你是猜测者')
+                $('#info1').text('猜一个成语')
+            }
+        }
+
+        if (res.winner!=0){
+            $('#info1').text(res.win_name + ' 猜对了')
+        }
     })
 }
 
